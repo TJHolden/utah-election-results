@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utah Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029161807">
+<meta name="build" content="20261029162117">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029161807"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029162117"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1257,13 +1257,38 @@
           return /* @__PURE__ */ React.createElement(ShiftArrow, { key: "a" + f.id, x: c[0], y: c[1], sh: regionShift(r, pr), k: fc.features.length > 120 ? 0.75 : 1, max: fc.features.length > 120 ? 26 : 40 });
         })));
       }
-      const distLayers = () => CLIENT.districts && Object.keys(CLIENT.districts).length ? CLIENT.districts : null, distNumOf = (r) => r.type === "House" ? cdOf(r) : legNum(r), ZOOM_BOX = { UT: { name: "Wasatch Front", box: [[-112.25, 40], [-111.55, 41.35]] } };
+      const distLayers = () => CLIENT.districts && Object.keys(CLIENT.districts).length ? CLIENT.districts : null, distCache = /* @__PURE__ */ new Map();
+      function loadDistrictShapes(url) {
+        if (distCache.has(url)) return distCache.get(url);
+        const p = (async () => {
+          const key = "dist:" + url, hit = lsGet(key, 30 * 864e5);
+          if (hit && hit.features && hit.features.length) return hit;
+          const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 2e4);
+          try {
+            const res = await fetch(url, { signal: ctl.signal });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const j = await res.json();
+            if (!j || !Array.isArray(j.features) || !j.features.length) throw new Error("no districts");
+            const fc = { type: "FeatureCollection", features: j.features.map((f) => {
+              var _a, _b;
+              return { type: "Feature", geometry: f.geometry, properties: { d: String(+((_b = (_a = f.properties.DISTRICT) != null ? _a : f.properties.DIST) != null ? _b : f.properties.district)) } };
+            }) };
+            return lsSet(key, fc), fc;
+          } finally {
+            clearTimeout(tm);
+          }
+        })();
+        return p.catch(() => distCache.delete(url)), distCache.set(url, p), p;
+      }
+      const distNumOf = (r) => r.type === "House" ? cdOf(r) : legNum(r), ZOOM_BOX = { UT: { name: "Wasatch Front", box: [[-112.25, 40], [-111.55, 41.35]] } };
       function DistrictMap({ type, races, hover, setHover, onPick, highlightId, view, fallback }) {
         const L = distLayers(), url = L && L[type], [fc, setFc] = useState(null), [err, setErr] = useState(!1), [zoom, setZoom] = useState(!1);
         useEffect(() => {
           let on = !0;
           if (setFc(null), setErr(!1), !!url)
-            return loadDistricts(url).then((x) => on && setFc(x)).catch(() => on && setErr(!0)), () => {
+            return loadDistrictShapes(url).then((x) => {
+              on && (x && x.features ? setFc(x) : setErr(!0));
+            }).catch(() => on && setErr(!0)), () => {
               on = !1;
             };
         }, [url]);
@@ -1888,7 +1913,7 @@
           return rows.forEach((x) => {
             c[x.s.k] = (c[x.s.k] || 0) + 1;
           }), c;
-        }, [rows]), live = (k) => k === "leading" || k === "trailing" || k === "tied" || k === "notyet" || k === "place" || k === "counting", shown = rows.filter((x) => (flt === "all" || (flt === "live" ? live(x.s.k) : x.s.k === flt)) && (!q || `${x.p.name} ${x.p.label || ""} ${STATE_NAMES[x.p.st] || x.p.st} ${x.race ? x.race.name : ""}`.toLowerCase().includes(q.toLowerCase()))), ORDER = { trailing: 0, tied: 0, place: 0, counting: 0, leading: 1, notyet: 2, won: 3, lost: 3, called: 3, unopposed: 4, review: 5, nofeed: 5 }, GRP = ["U.S. Senate", "U.S. House", "Governor", "Statewide offices", "State Senate", "State House", "Ballot measures", "Judicial retention"], grpOf = (x) => {
+        }, [rows]), live = (k) => k === "leading" || k === "trailing" || k === "tied" || k === "notyet" || k === "place" || k === "counting", shown = rows.filter((x) => (flt === "all" || (flt === "live" ? live(x.s.k) : x.s.k === flt)) && (!q || `${x.p.name} ${x.p.label || ""} ${STATE_NAMES[x.p.st] || x.p.st} ${x.race ? x.race.name : ""}`.toLowerCase().includes(q.toLowerCase()))), ORDER = { trailing: 0, tied: 0, place: 0, counting: 0, leading: 1, notyet: 2, won: 3, lost: 3, called: 3, unopposed: 4, review: 5, nofeed: 5 }, GRP = ONLY ? ["Ballot measures", "U.S. Senate", "U.S. House", "Governor", "Statewide offices", "State Senate", "State House", "Judicial retention"] : ["U.S. Senate", "U.S. House", "Governor", "Statewide offices", "State Senate", "State House", "Ballot measures", "Judicial retention"], grpOf = (x) => {
           const r = x.race;
           return !STATE_ED || !r ? x.p.st : r.level === "Ballot Measure" ? "Ballot measures" : r.level === "Federal" ? r.type === "Senate" ? "U.S. Senate" : "U.S. House" : r.type === "Governor" ? "Governor" : r.level === "Statewide" ? /retention/i.test(r.name) ? "Judicial retention" : "Statewide offices" : r.type === "State Senate" ? "State Senate" : "State House";
         }, byState = {};
