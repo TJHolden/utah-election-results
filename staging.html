@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utah Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029162117">
+<meta name="build" content="20261029162214">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029162117"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029162214"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1300,7 +1300,11 @@
           }), m;
         }, [races]), zb = ZOOM_BOX[CLIENT.state], W = 560, H = 440, { path } = useMemo(() => {
           if (!fc) return {};
-          const target = zoom && zb ? { type: "Feature", geometry: { type: "Polygon", coordinates: [[zb.box[0], [zb.box[1][0], zb.box[0][1]], zb.box[1], [zb.box[0][0], zb.box[1][1]], zb.box[0]]] } } : fc;
+          const target = zoom && zb ? { type: "Feature", geometry: {
+            type: "Polygon",
+            coordinates: [[zb.box[0], [zb.box[0][0], zb.box[1][1]], zb.box[1], [zb.box[1][0], zb.box[0][1]], zb.box[0]]]
+            /* clockwise, as d3 expects for a small area */
+          } } : fc;
           return { path: d3.geoPath(d3.geoMercator().fitExtent([[8, 8], [W - 8, H - 8]], target)) };
         }, [fc, zoom]);
         if (!url || err) return fallback;
