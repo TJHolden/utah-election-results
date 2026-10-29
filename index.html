@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utah Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029164623">
+<meta name="build" content="20261029164830">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029164623"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029164830"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -73,7 +73,7 @@
     }
   });
   var require_app_src = __commonJS({
-    "qa/app_src.jsx"(exports, module) {
+    "../en/qa/app_src.jsx"(exports, module) {
       init_define_CLIENT();
       init_define_SBA_PICKS();
       const { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } = React, SERIF = "'Source Serif 4', Georgia, serif", MONO = "'JetBrains Mono', ui-monospace, monospace", SANS = "'DM Sans', system-ui, sans-serif", T = {
