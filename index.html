@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utah Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029174618">
+<meta name="build" content="20261029174928">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029174618"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029174928"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1227,7 +1227,7 @@
           })());
         })), hover && !tileInfo(hover).empty && /* @__PURE__ */ React.createElement(StateHoverCard, { abbr: hover, info: tileInfo(hover), accuracyMode, style: { position: "absolute", left: `${(TILES[hover][0] + 1) * (SZ + GAP) / W * 100}%`, top: `${TILES[hover][1] * (SZ + GAP) / H * 100}%` } }));
       }
-      const leftColor = (t) => t <= 0 ? "#ebe8e1" : d3.interpolateRgb("#f6eed6", "#9a7419")(Math.sqrt(Math.min(1, t))), leanTxt = (x) => x == null || !isFinite(x) ? "" : Math.abs(x) < 0.5 ? "even" : `${x >= 0 ? "D" : "R"}+${Math.abs(x).toFixed(0)}`;
+      const leftColor = (t) => t <= 0 ? "#ebe8e1" : d3.interpolateRgb("#efe9fb", "#3f2287")(Math.sqrt(Math.min(1, t))), leanTxt = (x) => x == null || !isFinite(x) ? "" : Math.abs(x) < 0.5 ? "even" : `${x >= 0 ? "D" : "R"}+${Math.abs(x).toFixed(0)}`;
       function GeoMap({ feats, results, prior, view, hover, setHover, onPick, ballot, left, pre }) {
         const { path, fc } = useMemo(() => {
           const fc2 = { type: "FeatureCollection", features: feats }, proj = feats.length && String(feats[0].id).padStart(5, "0").startsWith("02") ? d3.geoAlbers().rotate([154, 0]).center([0, 63]).parallels([55, 65]).fitExtent([[8, 8], [552, 412]], fc2) : d3.geoMercator().fitExtent([[8, 8], [552, 412]], fc2);
