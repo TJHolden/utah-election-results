@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="robots" content="noindex">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utah Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029181249">
+<meta name="build" content="20261029191545">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029181249"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029191545"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -40,7 +41,9 @@
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" crossorigin></script><script>/* TEST-ONLY: fake election-night results layered on top of the real civicAPI race list.
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" crossorigin></script>
+<script>
+/* TEST-ONLY: fake election-night results layered on top of the real civicAPI race list.
    Nothing here is real. This file only exists inside test-night.html and is deleted after testing. */
 (function(){
   var P=new URLSearchParams(location.search);
@@ -147,6 +150,7 @@
   if(document.body) banner(); else document.addEventListener('DOMContentLoaded',banner);
   document.title='TEST — '+document.title;
 })();
+
 </script>
 </head>
 <body>
@@ -2602,7 +2606,10 @@
           return ks.forEach(([n, f]) => {
             m[n] = { V: f[3], share: 100 * f[3] / sum };
           }), m.__total = sum, m;
-        }, [mapType, cfS, feats, focusRace && focusRace.id, focusRace && focusRace.v1 + focusRace.v2]), hasLeft = isDistrictType(mapType) ? !!leftSeats && Object.values(leftSeats).some((x) => x.R > 0) : !!leftBy && Object.values(leftBy).some((x) => x.R > 0), leftTot = useMemo(() => {
+        }, [mapType, cfS, feats, focusRace && focusRace.id, focusRace && focusRace.v1 + focusRace.v2]), hasLeft = (() => {
+          const src = isDistrictType(mapType) ? leftSeats ? Object.values(leftSeats) : [] : leftBy ? Object.values(leftBy) : [], R = src.reduce((a, x) => a + (x.R || 0), 0), E = src.reduce((a, x) => a + (x.E || 0), 0);
+          return R >= 500 && R >= 5e-3 * E;
+        })(), leftTot = useMemo(() => {
           const src = leftBy ? Object.values(leftBy) : leftSeats ? Object.values(leftSeats) : [], R = src.reduce((a, x) => a + x.R, 0), wl = src.filter((x) => x.R > 0 && x.lean != null), wh = src.filter((x) => x.R > 0 && x.hist != null);
           return { R, lean: wl.length ? wl.reduce((a, x) => a + x.lean * x.R, 0) / Math.max(1, wl.reduce((a, x) => a + x.R, 0)) : null, hist: wh.length ? wh.reduce((a, x) => a + x.hist * x.R, 0) / Math.max(1, wh.reduce((a, x) => a + x.R, 0)) : null };
         }, [leftBy, leftSeats]), hoverLeft = view === "left" ? typeof hover == "string" ? leftBy && leftBy[hover] : hover != null && leftSeats ? leftSeats[hover] : null : null;
