@@ -7,8 +7,15 @@ Source: https://electionresults.utah.gov/results/public/Utah/General11032026
 """
 import json, sys, urllib.request, datetime, os
 
-API = ("https://electionresults.utah.gov/results/public/api/elections/"
-       "Utah/General11032026/data")
+BASE = ("https://electionresults.utah.gov/results/public/api/elections/"
+        "Utah/General11032026")
+API = BASE + "/data"
+# Per-contest county breakdown. The tracker's county map is only ever drawn for
+# statewide ballot questions here (everything else is a district map), so only
+# those are fetched — two extra requests a cycle rather than 135.
+DETAIL = BASE + "/data/ballot-item/%s"
+BREAKDOWN_KINDS = {"measure"}
+UT_FIPS = "49"
 
 PARTY = {
     "Republican": "R", "Democratic": "D", "Democrat": "D",
@@ -57,13 +64,47 @@ def district(name):
     return 9999
 
 
-def main():
-    req = urllib.request.Request(API, headers={
+def get_json(url, timeout=45):
+    req = urllib.request.Request(url, headers={
         "Accept": "application/json",
         "User-Agent": "utah-election-results/1.0 (github actions)",
     })
-    with urllib.request.urlopen(req, timeout=45) as r:
-        data = json.load(r)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)
+
+
+def county_breakdown(gid):
+    """County-level results for one contest, or None if unavailable.
+
+    A failure here is never fatal: the statewide numbers still publish, the
+    county map just stays unpainted for that contest.
+    """
+    try:
+        j = get_json(DETAIL % gid, timeout=30)
+    except Exception as e:
+        print("breakdown %s failed: %s" % (gid, str(e)[:80]), file=sys.stderr)
+        return None
+    bi = j.get("ballotItemWithBreakdown") or {}
+    out = []
+    for row in (bi.get("breakdownResults") or []):
+        loc = row.get("locality") or {}
+        name = en(loc.get("name"))
+        if not name:
+            continue
+        feat = str(loc.get("mapFeatureId") or "").strip()
+        fips = (UT_FIPS + feat.zfill(3)[-3:]) if feat else ""
+        prs = row.get("precinctReportingStatus") or {}
+        ru, tu = prs.get("reportingUnits") or 0, prs.get("totalUnits") or 0
+        total = row.get("voteTotal") or 0
+        rpt = round(ru / tu * 100) if tu else (100 if total > 0 else 0)
+        opts = [[en(o.get("name")), o.get("voteCount") or 0]
+                for o in (row.get("ballotOptions") or [])]
+        out.append([name, fips, rpt, total, opts])
+    return out or None
+
+
+def main():
+    data = get_json(API)
 
     items = data.get("ballotItems") or []
     if not items:
@@ -82,9 +123,14 @@ def main():
         if vote_for and isinstance(vote_for[0], dict):
             seats = vote_for[0].get("voteFor") or 1
         opts = ((x.get("summaryResults") or {}).get("ballotOptions")) or []
+        k = kind(name, x.get("contestType"))
+        rg = None
+        if k in BREAKDOWN_KINDS and x.get("hasBreakdownResults") and x.get("id"):
+            rg = county_breakdown(x["id"])
         races.append({
             "n": name,
-            "k": kind(name, x.get("contestType")),
+            "k": k,
+            **({"rg": rg} if rg else {}),
             "d": district(name),
             "seats": seats,
             "ru": rs.get("reportingUnits") or 0,

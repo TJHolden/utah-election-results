@@ -111,10 +111,44 @@
       percent_reporting: r.tu > 0 ? Math.round((r.ru / r.tu) * 100) : (total > 0 ? 100 : 0),
       registered_voters: null,
       test_data: false,
-      has_breakdown: false,   // no county-level data in the mirror
-      region_results: {},
+      has_breakdown: !!(r.rg && r.rg.length),
+      region_results: regionResults(r),
       candidates: cands
     };
+  }
+
+  // County results, in the shape the tracker's county map reads: keyed by a
+  // slug, each with the county's name, FIPS and its own candidate rows.
+  // Only contests the mirror carries a breakdown for have one; everything else
+  // is a district map and never asks.
+  function regionResults(r) {
+    if (!r.rg || !r.rg.length) return {};
+    var out = {};
+    for (var i = 0; i < r.rg.length; i++) {
+      var row = r.rg[i];                       // [name, fips, rpt, total, opts]
+      var name = row[0], fips = row[1], rpt = row[2], opts = row[4] || [];
+      var total = 0, k;
+      for (k = 0; k < opts.length; k++) total += opts[k][1] || 0;
+      var key = String(name).toLowerCase()
+        .replace(/\s+county$/, "").replace(/[^a-z0-9]/g, "");
+      out[key] = {
+        name: name,
+        type: "County",
+        fips: fips,
+        percent_reporting: rpt,
+        candidates: opts.map(function (o) {
+          var isYN = /^(yes|no|for|against)$/i.test(String(o[0]).trim());
+          return {
+            name: titleCase(o[0]),
+            party: isYN ? "" : "",
+            votes: o[1] || 0,
+            percent: total > 0 ? +((o[1] || 0) / total * 100).toFixed(2) : 0,
+            winner: false
+          };
+        })
+      };
+    }
+    return out;
   }
 
   function load() {
