@@ -89,10 +89,14 @@
     var total = 0, i;
     for (i = 0; i < r.c.length; i++) total += r.c[i][2] || 0;
     var cands = r.c.map(function (c) {
+      // A Yes/No option gets no party. The tracker discards any race where
+      // every candidate's name equals its party — that's how it recognises
+      // whole-chamber tallies — so naming the party "For" would silently drop
+      // every ballot measure and retention question.
       var isYN = /^(yes|no|for|against)$/i.test(String(c[0]).trim());
       return {
-        name: isYN ? titleCase(c[0]) : titleCase(c[0]),
-        party: isYN ? titleCase(c[0]) : (PARTY_FULL[c[1]] || c[1] || ""),
+        name: titleCase(c[0]),
+        party: isYN ? "" : (PARTY_FULL[c[1]] || c[1] || ""),
         votes: c[2] || 0,
         percent: total > 0 ? +((c[2] || 0) / total * 100).toFixed(2) : 0,
         winner: !!c[3],
